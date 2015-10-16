@@ -49,6 +49,7 @@ var Game = (function () {
 		this.preBlock = this.newBlock();
 		this.speed = 1;
 		this.level = 0;
+		this.score = 0;
 		this.emit('start');
 		this.emit('update');
 	};

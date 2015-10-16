@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html>
 
 <head>
@@ -24,6 +24,8 @@
   <button class="speed" data-speed='1'>正常速度</button>
   <button class="speed" data-speed='2'>x2</button>
   <button class="speed" data-speed='4'>x4</button>
+  <button class="speed" data-speed='8'>x8</button>
+  <div id="score"></div>
   <script>
    
     function fillTable(id,w,h){
@@ -52,6 +54,9 @@
             
              _this.index++;
              _this.play();
+          });
+          this.player.on('score',function(score){
+            if(score) document.getElementById('score').innerHTML = '<p style="color:red">'+score+'</p>'
           });
       }
       Play.prototype.start = function(){
@@ -84,6 +89,7 @@
          case 1:play.player.s();break;
          case 2:play.player.s2();break;
          case 4:play.player.s4();break;
+         case 8:play.player.s8();break;
        }
      });
   

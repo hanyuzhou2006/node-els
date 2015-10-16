@@ -1,4 +1,4 @@
-
+﻿
 
 var Game = (function () {
   function Game() {
@@ -31,7 +31,7 @@ var Game = (function () {
   });
   Game.Blocks = pointsTypes;
   Game.prototype.fromCompress = function (data) {
-    if (data.length != 47) return false;
+    if (!data || data.length != 47) return false;
 		
     //解压数据,总长度47
     this.status = parseInt(data[0], 32);
@@ -160,16 +160,22 @@ var Player = (function () {
   Player.prototype.s4 = function () {
     this.speed = 4;
   }
+  Player.prototype.s8 = function () {
+    this.speed = 8;
+  }
   Player.prototype.play = function () {
     if (this.length) {
       if (this.i < this.length) {
         var _this = this;
         var timeout = parseInt(this.data[this.i][0]) / this.speed;
         setTimeout(function () {
-          
-          _this.shadow.fromCompress(_this.data[_this.i++][2]);
-          _this.shadow.update();
-          _this.play();
+          if (_this.data[_this.i]) {
+            _this.shadow.fromCompress(_this.data[_this.i][2]);
+            _this.shadow.update();
+            _this.emit('score', _this.data[_this.i][1]);
+            _this.i++;
+            _this.play();
+          }
         }, timeout);
       } else {
         this.emit('end');
