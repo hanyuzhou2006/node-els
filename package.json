@@ -1,5 +1,5 @@
 {
-  "name": "els-1",
+  "name": "node-els",
   "version": "1.0.0",
   "description": "els",
   "main": "app.js",
@@ -12,5 +12,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "seek",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hanyuzhou2006/node-els.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hanyuzhou2006/node-els/issues"
+  },
+  "homepage": "https://github.com/hanyuzhou2006/node-els#readme"
 }

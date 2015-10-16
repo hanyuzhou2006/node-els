@@ -1,4 +1,4 @@
-/// <reference path="typings/node/node.d.ts"/>
+﻿/// <reference path="typings/node/node.d.ts"/>
 var express = require('express');
 var app = express();
 var http = require('http');
@@ -7,12 +7,6 @@ var io = require('socket.io')(server);
 var Game = require('./els.js');
 var Record = require('./record.js');
 var fs = require("fs");
-var MongoClient = require('mongodb').MongoClient;
-var url = 'mongodb://127.0.0.1:27017/els';
-var highCollection;
-var scoreCollection;
-var statusCollection;
-var timeCollection;
 var high = -1;
 
 var game = new Game();
