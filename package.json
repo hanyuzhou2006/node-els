@@ -1,8 +1,8 @@
 {
-  "name": "node-els",
+  "name": "els-1",
   "version": "1.0.0",
   "description": "els",
-  "main": "app.js",
+  "main": "app.aly.js",
   "dependencies": {
     "socket.io": "^1.3.7",
     "express": "^4.13.3"
@@ -12,13 +12,5 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "seek",
-  "license": "ISC",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hanyuzhou2006/node-els.git"
-  },
-  "bugs": {
-    "url": "https://github.com/hanyuzhou2006/node-els/issues"
-  },
-  "homepage": "https://github.com/hanyuzhou2006/node-els#readme"
+  "license": "ISC"
 }
