@@ -55,7 +55,8 @@ var Game = (function () {
 	};
 	Game.prototype.levelUp = function(){
 		this.level++;
-		this.speed += 1;
+		this.speed++;
+	
 	}
 
 	//生成新block
@@ -209,13 +210,15 @@ var Game = (function () {
 	//自动
 	Game.prototype.auto = function () {
 		var _this = this;
+		var timeout = parseInt(1000/this.speed);
+		//console.log(new Date().format(),': timeout : ',timeout);
 		setTimeout(function () {
 			if (_this.status) {
 				_this.emit('auto');
 				_this.op(3);
 				_this.auto();
 			}
-		}, 1000 / this.speed);
+		}, timeout);
 	};
 
 	//绑定事件
@@ -252,7 +255,7 @@ var Game = (function () {
 	};
 	Game.prototype.toCompress = function(){
 		if(typeof this.status === 'undefined'){
-			console.log('undefined');
+			 
 			return '';
 			
 		} 

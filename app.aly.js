@@ -1,92 +1,21 @@
-/// <reference path="typings/node/node.d.ts"/>
 var express = require('express');
 var app = express();
 var http = require('http');
 var server = http.createServer(app);
 var io = require('socket.io')(server);
 var Game = require('./els.js');
-var Record = require('./record.js');
+var Record = require('./record.aly.js');
 var fs = require("fs");
- 
+
 var high = -1;
 
 var game = new Game();
 var gameString = '';
-var record = null;
-/*
- * 复制目录中的所有文件包括子目录
- * @param{ String } 需要复制的目录
- * @param{ String } 复制到指定的目录
- */
-var copy = function (src, dst) {
-  // 读取目录中的所有文件/目录
-  fs.readdir(src, function (err, paths) {
-    if (err) {
-      throw err;
-    }
-    paths.forEach(function (path) {
-      var _src = src + '/' + path,
-        _dst = dst + '/' + path,
-        readable, writable;
-
-      fs.stat(_src, function (err, st) {
-        if (err) {
-          throw err;
-        }
-
-        // 判断是否为文件
-        if (st.isFile()) {
-          // 创建读取流
-          readable = fs.createReadStream(_src);
-          // 创建写入流
-          writable = fs.createWriteStream(_dst);  
-          // 通过管道来传输流
-          readable.pipe(writable);
-        }
-        // 如果是目录则递归调用自身
-        else if (st.isDirectory()) {
-          exists(_src, _dst, copy);
-        }
-      });
-    });
-  });
-};
-// 在复制目录前需要判断该目录是否存在，不存在需要先创建目录
-var exists = function (src, dst, callback) {
-  fs.exists(dst, function (exists) {
-    // 已存在
-    if (exists) {
-      callback(src, dst);
-    }
-    // 不存在
-    else {
-      fs.mkdir(dst, function () {
-        callback(src, dst);
-      });
-    }
-  });
-};
-var rm = function (src) {
-  if (fs.existsSync(src)) {
-    var st = fs.statSync(src); 
-    // 判断是否为文件
-    if (st.isFile()) {
-      fs.unlinkSync(src);
-    }
-    // 如果是目录则递归调用自身
-    else if (st.isDirectory()) {
-      var paths = fs.readdirSync(src);
-      for (var i = 0; i < paths.length; i++) {
-        var _src = src + '/' + paths[i];
-        rm(_src);
-      }
-      fs.rmdirSync(src);
-    }
-  }
-};
-
+var record = new Record();
+ 
 //日期格式化，全局
 Date.prototype.format = function (format) {
+  if(!format) format = 'yyyy/MM/dd hh:mm:ss';
   var o = {
     "M+": this.getMonth() + 1, //month
     "d+": this.getDate(),    //day
@@ -111,17 +40,15 @@ Date.prototype.format = function (format) {
 
 
 
-app.use(express.static(__dirname + '/public'));
-app.use(express.static(__dirname + '/record'));
-server.listen(80);
+app.use(express.static(__dirname + '/public.aly'));
+
 
 
 
 game.on('start', function () {
-  console.log(new Date().format("yyyy/MM/dd") + ' game start');
-  rm('current/');
+  console.log(new Date().format() + ': game start');
   game.last = Date.now();
-  record = new Record();
+  record.init();
   game.auto();
 });
 
@@ -129,21 +56,27 @@ game.on('auto', function () {
   // console.log('auto');
 });
 game.on('end', function () {
-  console.log(new Date().format("yyyy/MM/dd") + ' game end');
-  record.strs.push(null);
-  record.hirs.push(String(game.score));
-  record.hirs.push(',');
-  record.hirs.push(String(record.index));
-  record.hirs.push(null);
+  console.log(new Date().format() + ': game end');
+
   if (high < game.score) {
     //更新最高分
     high = game.score;
-    //-*--------------------------------
-    exists('./current', './record', copy);
-
+    record.hirs.push(String(game.score));
+    record.hirs.push(',');
+    record.hirs.push(String(record.index));
+    record.hirs.push(null);
+    
+    record.strs.push(null, function () {
+      record.setCopy();
+      record.end = 1;
+      record.callback();
+    });
+  } else {
+    record.strs.push(null);
   }
 });
 game.on('status', function () {
+ 
   gameString = game.toCompress();
   io.emit('cdata', gameString);
   var now = Date.now();
@@ -178,21 +111,36 @@ game.on('score', function (length) {
     case 4: score = 10; break;
   }
   game.score += score;
-  if (game.score < Game.scores[Game.scores.length - 1]) {
-    if (game.score >= Game.scores[game.level]) {
-      game.levelUp();
+  try {
+    if (game.score < Game.scores[Game.scores.length - 1]) {
+      if (game.score >= Game.scores[game.level]) {
+        game.levelUp();
+        console.log(new Date().format(),': level up to ',game.level);
+      }
     }
+  } catch (e) {
+    console.log(new Date().format(),': error:', e);
   }
+
 
   io.emit('score', [score, game.score]);
 });
 
-try {
-  var highText = fs.readFileSync('./record/high.txt', 'utf-8');
-  high = parseInt(highText.split(',')[0]);
-} catch (e) {
-  high = -1;
-}
+
+record.getFile('info.txt', function (err, data) {
+  if (err) {
+    high = -1;
+
+  } else {
+     
+    var callback = function(data){
+      return parseInt(data.split(',')[0]);
+    }
+    high = eval(data.Body.toString('utf-8'));
+  }
+  console.log(new Date().format(),': 最高分:', high);
+});
+
 
 var user = null;
 io.on('connection', function (socket) {
@@ -214,10 +162,11 @@ io.on('connection', function (socket) {
     else {
       user = socket.id;
       game.start();
+      io.emit('score',[game.score,game.score]);
       io.emit('start', socket.id);
     }
   });
-
+  
   socket.on('disconnect', function () {
     if (user == socket.id) {
       user = null;
@@ -228,3 +177,4 @@ io.on('connection', function (socket) {
 });
 
 
+server.listen();

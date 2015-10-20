@@ -2,7 +2,7 @@
   "name": "els-1",
   "version": "1.0.0",
   "description": "els",
-  "main": "app.js",
+  "main": "app.aly.js",
   "dependencies": {
     "socket.io": "^1.3.7",
     "express": "^4.13.3"
