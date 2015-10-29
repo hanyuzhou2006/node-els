@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+  
+  <head>
+    <script src="client.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      tr td {
+        width: 20px;
+        height: 20px;
+      }
+      .left {
+        float: left;
+      }
+      .inline{
+        display: inline;
+      }
+      .red{
+        color:red;
+      }
+      .blue{
+        color:blue;
+      }
+      .play{
+        width:85px;
+        height:85px;
+        
+      }
+      #msg{
+        height:420px;
+        width:300px;
+        border:1px saddlebrown solid;
+      }
+      #msg p{
+        height:20px;
+        margin:0;
+        padding:1px;
+      }
+    </style>
+  </head>
+  
+  <body>
+ 
+    <table class="left" id="board1" cellspacing=0 cellpadding=0 border=1 style="border-collapse:collapse;"></table>
+    <div class="left">
+         <table id="preBoard1" cellspacing=0 cellpadding=0 border=1 style="border-collapse:collapse;"></table>
+     <div>
+       得分：
+        <p class="red inline"  id="score"></p>
+      </div>
+      <div>
+       玩家：
+        <p class="red inline"  id="user"></p>
+      </div>
+      
+     
+     
+      <div>在线人数：
+        <p class="red inline"  id="onlines"></p>
+      </div>
+       <button onclick="play()" class="play">play</button>
+    </div>
+  
+       
+    
+      <div class="left" id="msg"></div>
+      <div class="left">
+        <div id="me"></div>
+        <input id="comment">
+        <button onclick="send()">发送</button>
+      </div>
+    <script>
+      function fillTable(id,w,h){
+        var data = new Array();
+        for (var i = 0; i < h; i++) {
+          data.push('<tr>');
+          for (var j = 0; j < w; j++) {
+           data.push('<td></td>');
+          }
+          data.push('</tr>');
+         }
+          document.getElementById(id).innerHTML = data.join('');
+      }
+  
+      fillTable('board1',10,20);
+      fillTable('preBoard1',4,4);
+      //键盘控制
+    function keyControl(event) {
+        var code = event.keyCode;
+        socket.emit('op',code-37);
+    }
+     function play(){
+       socket.emit('play');
+     }
+     function send(){
+       var comment = document.getElementById('comment').value;
+       socket.emit("comment",comment);
+     }
+     var socket = io.connect('');
+      document.onkeydown = keyControl;
+      var shadow = new Shadow(1);
+      var msgCount = 0;
+       var msgNode = document.getElementById('msg');
+       var ps = msgNode.getElementsByTagName('p');
+      socket.message = function(msg,id){
+        var p = document.createElement('p');
+        p.innerText = msg;
+        if(socket.id!=id){
+          p.className = 'blue';
+          
+        }else{
+           p.className = 'red';
+          
+        }
+       
+        msgNode.appendChild(p);
+        
+        msgCount++;
+        if(msgCount==20){
+          
+          for(var i = 0;i<10;i++){
+            msgNode.removeChild(ps[0]);
+          }
+           msgCount = 10;
+        }
+      };
+      socket.on('connect',function(){
+        document.getElementById('me').innerHTML = socket.id;
+      })
+      socket.on('start',function(id){
+         socket.message(id+'开始了游戏',id);
+         document.getElementById('user').innerHTML = id;
+      });
+      socket.on('control',function(id){
+        
+        if(id){
+          document.getElementById('user').innerHTML = id;
+        }else{
+          document.getElementById('user').innerHTML ='NO PLAYER';
+        }
+       
+      });
+      socket.on('uncontrol',function(id){
+        socket.message(id+'不再控制游戏',id);
+      });
+      socket.on('cdata',function(data){
+        var success = shadow.fromCompress(data);
+        if(success)shadow.update();
+      });
+      socket.on('score',function(score){
+        if(score){
+          document.getElementById('score').innerHTML =  score[1];
+        }
+       
+      });
+      socket.on('onlines',function(onlines){
+        document.getElementById('onlines').innerHTML =  onlines ;
+      })
+       socket.on('inline',function(id){
+        socket.message(id+'进入了游戏',id);
+      });
+      socket.on('unline',function(id){
+        socket.message(id+'离开了游戏',id);
+      });
+      socket.on('comment',function(comment,id){
+        socket.message(id+'：'+comment,id);
+      });
+    </script>
+  </body>
+
+</html>

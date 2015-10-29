@@ -1,10 +1,11 @@
-var express = require('express');
+﻿var express = require('express');
 var app = express();
 var http = require('http');
 var server = http.createServer(app);
 var io = require('socket.io')(server);
 var Game = require('./els.js');
 var Record = require('./record.aly.js');
+
 var fs = require("fs");
 
 var high = -1;
@@ -12,7 +13,12 @@ var high = -1;
 var game = new Game();
 var gameString = '';
 var record = new Record();
+var onlines = 0; 
+app.use(express.static(__dirname + '/public'));
  
+app.get('/fileHost',function(req,res){
+  res.send(record.fileHost);
+});
 //日期格式化，全局
 Date.prototype.format = function (format) {
   if(!format) format = 'yyyy/MM/dd hh:mm:ss';
@@ -39,9 +45,19 @@ Date.prototype.format = function (format) {
 }
 
 
+record.getFile('info.txt', function (err, data) {
+  if (err) {
+    high = -1;
 
-app.use(express.static(__dirname + '/public.aly'));
-
+  } else {
+     
+    var callback = function(data){
+      return parseInt(data.split(',')[0]);
+    }
+    high = eval(data.toString('utf-8'));
+  }
+  console.log(new Date().format(),': 最高分:', high);
+});
 
 
 
@@ -127,26 +143,16 @@ game.on('score', function (length) {
 });
 
 
-record.getFile('info.txt', function (err, data) {
-  if (err) {
-    high = -1;
-
-  } else {
-     
-    var callback = function(data){
-      return parseInt(data.split(',')[0]);
-    }
-    high = eval(data.Body.toString('utf-8'));
-  }
-  console.log(new Date().format(),': 最高分:', high);
-});
 
 
 var user = null;
 io.on('connection', function (socket) {
+  onlines++;
   socket.emit('control', user);
   socket.emit('cdata', gameString);
   socket.emit('score', [game.score, game.score]);
+  io.emit('inline',socket.id);
+  io.emit('onlines',onlines);
   socket.on('op', function (code) {
     if (user == socket.id) {
       game.op(code);
@@ -164,17 +170,23 @@ io.on('connection', function (socket) {
       game.start();
       io.emit('score',[game.score,game.score]);
       io.emit('start', socket.id);
+      
     }
   });
-  
+  socket.on('comment',function(comment){
+    io.emit('comment',comment,socket.id);
+  })
   socket.on('disconnect', function () {
+    onlines--;
+    io.emit('onlines',onlines);
+    io.emit('unline',socket.id);    
     if (user == socket.id) {
       user = null;
+      io.emit('uncontrol', socket.id);
     }
-    io.emit('uncontrol', socket.id);
-
+   
   });
 });
 
 
-server.listen();
+server.listen(80);
