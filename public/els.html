@@ -41,9 +41,9 @@
   
   <body>
  
-    <table class="left" id="board1" cellspacing=0 cellpadding=0 border=1 style="border-collapse:collapse;"></table>
+    <table class="left" id="board1" cellspacing=0 cellpadding=0 border=1 style="border-collapse:collapse;border-color:gray"></table>
     <div class="left">
-         <table id="preBoard1" cellspacing=0 cellpadding=0 border=1 style="border-collapse:collapse;"></table>
+         <table id="preBoard1" cellspacing=0 cellpadding=0 border=1 style="border-collapse:collapse;border-color:gray"></table>
      <div>
        得分：
         <p class="red inline"  id="score"></p>
@@ -144,8 +144,7 @@
         socket.message(id+'不再控制游戏',id);
       });
       socket.on('cdata',function(data){
-        var success = shadow.fromCompress(data);
-        if(success)shadow.update();
+          shadow.fromCompress(data);
       });
       socket.on('score',function(score){
         if(score){

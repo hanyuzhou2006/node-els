@@ -2,7 +2,8 @@
 
 var Game = (function () {
   function Game() {
-
+    this.handlers = {};
+    this.init = 0;
   }
   var types = [
     [0x0f00, 0x4444, 0x0f00, 0x4444],
@@ -35,11 +36,11 @@ var Game = (function () {
 		
     //解压数据,总长度47
     this.status = parseInt(data[0], 32);
-    this.board = [];
+    var board = [];
     for (var i = 0; i < 20; i++) {
-      this.board[i] = [];
+      board[i] = [];
       for (var j = 0; j < 10; j++) {
-        this.board[i][j] = 0;
+        board[i][j] = 0;
       }
     }
     i = 0;
@@ -48,7 +49,7 @@ var Game = (function () {
     for (var si = 0; si < 40; si++) {
       var temp = parseInt(data[si + 1], 32);
       for (var sc = 0; sc < 5; sc++) {
-        this.board[i][j++] = (temp >> sc) & 1;
+        board[i][j++] = (temp >> sc) & 1;
       }
       k++;
       if (k == 2) {
@@ -56,12 +57,69 @@ var Game = (function () {
       }
     }
 
-    this.x = parseInt(data[41], 32);
-    if (this.x > 9) this.x -= 16;
-    this.y = parseInt(data[42], 32);
-    this.block = { k: parseInt(data[43], 32), i: parseInt(data[44], 32) }
+    var x = parseInt(data[41], 32);
+    if (x > 9) x -= 16;
+    var y = parseInt(data[42], 32);
+    var block = { k: parseInt(data[43], 32), i: parseInt(data[44], 32) }
     this.preBlock = { k: parseInt(data[45], 32), i: parseInt(data[46], 32) }
+    var change = 0;
+    if (this.init!=0){
+      if(x != this.x || block.k != this.block.k || block.i != this.block.i || board.toString() != this.board.toString()) {
+        //左移,右移,变形,更新
+        change = 1;
+        this.emit('change');
+      }
+    }else {
+      this.init = 1;
+      change = 1;
+    }
+    this.x = x;
+    this.y = y;
+    this.block = block;
+    this.board = board;
+    if(change==1){
+      this.predict();
+    }
+    this.emit('update');
     return true;
+  };
+  //判定某位置是否可用
+  Game.prototype.isCellValid = function (x, y) {
+    return (x < 10 && x >= 0 && y < 20 && y >= 0 && !this.board[y][x]);
+  }
+  //检测是否碰撞
+  Game.prototype.checkBorder = function (block, x, y) {
+    var points = Game.Blocks[block.k][block.i];
+    for (var i = 0; i < points.length; i++) {
+      if (!this.isCellValid(points[i].x + x, points[i].y + y)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  //预测可以达到的最大深度
+  Game.prototype.predict = function () {
+    for (var i = this.y; i < 20; i++) {
+      if (!this.checkBorder(this.block, this.x, i)) {
+        this.predictY = i;
+      }
+    }
+  }
+  //绑定事件
+  Game.prototype.on = function (event, handler) {
+    if (typeof this.handlers[event] == "undefined") {
+      this.handlers[event] = [];
+    }
+    this.handlers[event].push(handler);
+  };
+  //触发事件
+  Game.prototype.emit = function (event, params) {
+    if (this.handlers[event] instanceof Array) {
+      var handlers = this.handlers[event];
+      for (var i = 0; i < handlers.length; i++) {
+        handlers[i](params);
+      }
+    }
   };
   return Game;
 
@@ -72,6 +130,17 @@ var Shadow = (function () {
     this.tbl = document.getElementById("board" + this.id);
     this.preTbl = document.getElementById("preBoard" + this.id);
     this.game = new Game();
+    
+    var _this = this;
+   
+    this.game.on('change',function(){
+     _this.erasePredict();
+    });
+  
+    this.game.on('update',function(){
+      _this.update();
+     
+    });
   }
 
 
@@ -81,8 +150,8 @@ var Shadow = (function () {
     this.paintBoard();
     this.erasePreview();
     this.paintPreview();
+    this.paintPredict();
     this.paint();
-
   };
 
   Client.prototype.fromCompress = function (data) {
@@ -130,7 +199,20 @@ var Shadow = (function () {
       }
     }
   };
-
+  //擦除预测最大深度
+  Client.prototype.erasePredict = function () {
+    var points = Game.Blocks[this.game.block.k][this.game.block.i];
+    for (var i = 0; i < points.length; i++) {
+      this.tbl.rows[points[i].y + this.game.predictY].cells[points[i].x + this.game.x].style.backgroundColor = "white";
+    }
+  }
+  //绘制预测最大深度
+  Client.prototype.paintPredict = function () {
+    var points = Game.Blocks[this.game.block.k][this.game.block.i];
+    for (var i = 0; i < points.length; i++) {
+      this.tbl.rows[points[i].y + this.game.predictY].cells[points[i].x + this.game.x].style.backgroundColor = "yellow";
+    }
+  }
   return Client;
 })();
 

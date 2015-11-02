@@ -1,6 +1,6 @@
 ﻿# ignore
 /node_modules
-/record
-/current
+/oss-record
+/oss-current
 /.vscode
 /.settings
