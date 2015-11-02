@@ -100,10 +100,12 @@ var Game = (function () {
   //预测可以达到的最大深度
   Game.prototype.predict = function () {
     for (var i = this.y; i < 20; i++) {
-      if (!this.checkBorder(this.block, this.x, i)) {
-        this.predictY = i;
+      if (this.checkBorder(this.block, this.x, i)) {
+        this.predictY = i - 1;
+        break;
       }
     }
+    
   }
   //绑定事件
   Game.prototype.on = function (event, handler) {
@@ -206,7 +208,7 @@ var Shadow = (function () {
   };
   //擦除预测最大深度
   Client.prototype.erasePredict = function () {
-    if (this.game.predictY != null) {
+    if (this.game.predictY >= null) {
       var points = Game.Blocks[this.game.block.k][this.game.block.i];
       for (var i = 0; i < points.length; i++) {
         this.tbl.rows[points[i].y + this.game.predictY].cells[points[i].x + this.game.x].className = "";
@@ -216,7 +218,7 @@ var Shadow = (function () {
   }
   //绘制预测最大深度
   Client.prototype.paintPredict = function () {
-    if (this.game.predictY != null) {
+    if (this.game.predictY >= null) {
       var points = Game.Blocks[this.game.block.k][this.game.block.i];
       for (var i = 0; i < points.length; i++) {
         this.tbl.rows[points[i].y + this.game.predictY].cells[points[i].x + this.game.x].className = "predict";
