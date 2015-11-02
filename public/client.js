@@ -63,13 +63,13 @@ var Game = (function () {
     var block = { k: parseInt(data[43], 32), i: parseInt(data[44], 32) }
     this.preBlock = { k: parseInt(data[45], 32), i: parseInt(data[46], 32) }
     var change = 0;
-    if (this.init!=0){
-      if(x != this.x || block.k != this.block.k || block.i != this.block.i || board.toString() != this.board.toString()) {
+    if (this.init != 0) {
+      if (x != this.x || block.k != this.block.k || block.i != this.block.i || board.toString() != this.board.toString()) {
         //左移,右移,变形,更新
         change = 1;
         this.emit('change');
       }
-    }else {
+    } else {
       this.init = 1;
       change = 1;
     }
@@ -77,7 +77,7 @@ var Game = (function () {
     this.y = y;
     this.block = block;
     this.board = board;
-    if(change==1){
+    if (change == 1) {
       this.predict();
     }
     this.emit('update');
@@ -130,16 +130,16 @@ var Shadow = (function () {
     this.tbl = document.getElementById("board" + this.id);
     this.preTbl = document.getElementById("preBoard" + this.id);
     this.game = new Game();
-    
+
     var _this = this;
-   
-    this.game.on('change',function(){
-     _this.erasePredict();
+
+    this.game.on('change', function () {
+      _this.erasePredict();
     });
-  
-    this.game.on('update',function(){
+
+    this.game.on('update', function () {
       _this.update();
-     
+
     });
   }
 
@@ -162,7 +162,8 @@ var Shadow = (function () {
   Client.prototype.paint = function () {
     var points = Game.Blocks[this.game.block.k][this.game.block.i];
     for (var i = 0; i < points.length; i++) {
-      this.tbl.rows[points[i].y + this.game.y].cells[points[i].x + this.game.x].style.backgroundColor = "red";
+      this.tbl.rows[points[i].y + this.game.y].cells[points[i].x + this.game.x].className = "fill";
+      //this.tbl.rows[points[i].y + this.game.y].cells[points[i].x + this.game.x].style.backgroundColor = "red";
     }
   };
       
@@ -170,14 +171,16 @@ var Shadow = (function () {
   Client.prototype.paintPreview = function () {
     var points = Game.Blocks[this.game.preBlock.k][this.game.preBlock.i];
     for (var i = 0; i < 4; i++) {
-      this.preTbl.rows[points[i].y].cells[points[i].x].style.backgroundColor = "red";
+      this.preTbl.rows[points[i].y].cells[points[i].x].className = "fill"
+      //this.preTbl.rows[points[i].y].cells[points[i].x].style.backgroundColor = "red";
     }
   };
   //擦除预览图形  
   Client.prototype.erasePreview = function () {
     for (var i = 0; i < 4; i++) {
       for (var j = 0; j < 4; j++) {
-        this.preTbl.rows[j].cells[i].style.backgroundColor = "white";
+        this.preTbl.rows[j].cells[i].className = "";
+        //this.preTbl.rows[j].cells[i].style.backgroundColor = "white";
       }
     }
   };
@@ -185,7 +188,8 @@ var Shadow = (function () {
   Client.prototype.eraseBoard = function () {
     for (var i = 0; i < 20; i++) {
       for (var j = 0; j < 10; j++) {
-        this.tbl.rows[i].cells[j].style.backgroundColor = "white";
+        this.tbl.rows[i].cells[j].className = "";
+        //this.tbl.rows[i].cells[j].style.backgroundColor = "white";
       }
     }
   };
@@ -194,24 +198,32 @@ var Shadow = (function () {
     for (var i = 0; i < 20; i++) {
       for (var j = 0; j < 10; j++) {
         if (this.game.board[i][j] == 1) {
-          this.tbl.rows[i].cells[j].style.backgroundColor = "red";
+          this.tbl.rows[i].cells[j].className = "fill";
+          //this.tbl.rows[i].cells[j].style.backgroundColor = "red";
         }
       }
     }
   };
   //擦除预测最大深度
   Client.prototype.erasePredict = function () {
-    var points = Game.Blocks[this.game.block.k][this.game.block.i];
-    for (var i = 0; i < points.length; i++) {
-      this.tbl.rows[points[i].y + this.game.predictY].cells[points[i].x + this.game.x].style.backgroundColor = "white";
+    if (this.game.predictY != null) {
+      var points = Game.Blocks[this.game.block.k][this.game.block.i];
+      for (var i = 0; i < points.length; i++) {
+        this.tbl.rows[points[i].y + this.game.predictY].cells[points[i].x + this.game.x].className = "";
+        //this.tbl.rows[points[i].y + this.game.predictY].cells[points[i].x + this.game.x].style.backgroundColor = "white";
+      }
     }
   }
   //绘制预测最大深度
   Client.prototype.paintPredict = function () {
-    var points = Game.Blocks[this.game.block.k][this.game.block.i];
-    for (var i = 0; i < points.length; i++) {
-      this.tbl.rows[points[i].y + this.game.predictY].cells[points[i].x + this.game.x].style.backgroundColor = "yellow";
+    if (this.game.predictY != null) {
+      var points = Game.Blocks[this.game.block.k][this.game.block.i];
+      for (var i = 0; i < points.length; i++) {
+        this.tbl.rows[points[i].y + this.game.predictY].cells[points[i].x + this.game.x].className = "predict";
+        //this.tbl.rows[points[i].y + this.game.predictY].cells[points[i].x + this.game.x].style.backgroundColor = "yellow";
+      }
     }
+
   }
   return Client;
 })();

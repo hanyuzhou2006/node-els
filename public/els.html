@@ -4,46 +4,14 @@
   <head>
     <script src="client.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <style>
-      tr td {
-        width: 20px;
-        height: 20px;
-      }
-      .left {
-        float: left;
-      }
-      .inline{
-        display: inline;
-      }
-      .red{
-        color:red;
-      }
-      .blue{
-        color:blue;
-      }
-      .play{
-        width:85px;
-        height:85px;
-        
-      }
-      #msg{
-        height:420px;
-        width:300px;
-        border:1px saddlebrown solid;
-      }
-      #msg p{
-        height:20px;
-        margin:0;
-        padding:1px;
-      }
-    </style>
+    <link rel="stylesheet" type="text/css" href="client.css"/>
   </head>
   
   <body>
  
-    <table class="left" id="board1" cellspacing=0 cellpadding=0 border=1 style="border-collapse:collapse;border-color:gray"></table>
+    <table class="left without-predict" id="board1" cellspacing=0 cellpadding=0 border=1 style="border-collapse:collapse;"></table>
     <div class="left">
-         <table id="preBoard1" cellspacing=0 cellpadding=0 border=1 style="border-collapse:collapse;border-color:gray"></table>
+         <table id="preBoard1" cellspacing=0 cellpadding=0 border=1 style="border-collapse:collapse;"></table>
      <div>
        得分：
         <p class="red inline"  id="score"></p>

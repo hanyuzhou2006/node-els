@@ -1,0 +1,40 @@
+.fill{
+  background-color: red;
+}
+.predict{
+  background-color: yellow;
+}
+table.without-predict .predict{
+  background-color: white;
+}
+tr td {
+  width: 20px;
+  height: 20px;
+}
+.left {
+  float: left;
+}
+.inline{
+  display: inline;
+}
+.red{
+  color:red;
+}
+.blue{
+  color:blue;
+}
+.play{
+  width:85px;
+  height:85px;
+  
+}
+#msg{
+  height:420px;
+  width:300px;
+  border:1px saddlebrown solid;
+}
+#msg p{
+  height:20px;
+  margin:0;
+  padding:1px;
+}
