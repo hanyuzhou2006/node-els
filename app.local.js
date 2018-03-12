@@ -4,12 +4,7 @@ var http = require('http');
 var server = http.createServer(app);
 var io = require('socket.io')(server);
 var Game = require('./els.js');
-if (process.env.RECORD === 'aly') {
-  var Record = require('./record.aly.js');
-} else {
-  var Record = require('./record.local.js');
-}
-
+var Record = require('./record.local.js');
 
 var fs = require("fs");
 
@@ -18,17 +13,17 @@ var high = -1;
 var game = new Game();
 var gameString = '';
 var record = new Record();
-var onlines = 0;
+var onlines = 0; 
 app.use(express.static(__dirname + '/public'));
-if (process.env.RECORD !== 'aly') app.use(record.fileHost, express.static(__dirname + '/' + record.dst));
-app.get('/fileHost', function (req, res) {
+app.use(record.fileHost,express.static(__dirname + '/'+record.dst));
+app.get('/fileHost',function(req,res){
   res.send(record.fileHost);
 });
 
 
 //日期格式化，全局
 Date.prototype.format = function (format) {
-  if (!format) format = 'yyyy/MM/dd hh:mm:ss';
+  if(!format) format = 'yyyy/MM/dd hh:mm:ss';
   var o = {
     "M+": this.getMonth() + 1, //month
     "d+": this.getDate(),    //day
@@ -57,13 +52,13 @@ record.getFile('info.txt', function (err, data) {
     high = -1;
 
   } else {
-
-    var callback = function (data) {
+     
+    var callback = function(data){
       return parseInt(data.split(',')[0]);
     }
     high = eval(data.toString('utf-8'));
   }
-  console.log(new Date().format(), ': 最高分:', high);
+  console.log(new Date().format(),': 最高分:', high);
 });
 
 
@@ -88,7 +83,7 @@ game.on('end', function () {
     record.hirs.push(',');
     record.hirs.push(String(record.index));
     record.hirs.push(null);
-
+    
     record.strs.push(null, function () {
       record.setCopy();
       record.end = 1;
@@ -99,7 +94,7 @@ game.on('end', function () {
   }
 });
 game.on('status', function () {
-
+ 
   gameString = game.toCompress();
   io.emit('cdata', gameString);
   var now = Date.now();
@@ -138,11 +133,11 @@ game.on('score', function (length) {
     if (game.score < Game.scores[Game.scores.length - 1]) {
       if (game.score >= Game.scores[game.level]) {
         game.levelUp();
-        console.log(new Date().format(), ': level up to ', game.level);
+        console.log(new Date().format(),': level up to ',game.level);
       }
     }
   } catch (e) {
-    console.log(new Date().format(), ': error:', e);
+    console.log(new Date().format(),': error:', e);
   }
 
 
@@ -158,8 +153,8 @@ io.on('connection', function (socket) {
   socket.emit('control', user);
   socket.emit('cdata', gameString);
   socket.emit('score', [game.score, game.score]);
-  io.emit('inline', socket.id);
-  io.emit('onlines', onlines);
+  io.emit('inline',socket.id);
+  io.emit('onlines',onlines);
   socket.on('op', function (code) {
     if (user == socket.id) {
       game.op(code);
@@ -175,25 +170,25 @@ io.on('connection', function (socket) {
     else {
       user = socket.id;
       game.start();
-      io.emit('score', [game.score, game.score]);
+      io.emit('score',[game.score,game.score]);
       io.emit('start', socket.id);
-
+      
     }
   });
-  socket.on('comment', function (comment) {
-    io.emit('comment', comment, socket.id);
+  socket.on('comment',function(comment){
+    io.emit('comment',comment,socket.id);
   })
   socket.on('disconnect', function () {
     onlines--;
-    io.emit('onlines', onlines);
-    io.emit('unline', socket.id);
+    io.emit('onlines',onlines);
+    io.emit('unline',socket.id);    
     if (user == socket.id) {
       user = null;
       io.emit('uncontrol', socket.id);
     }
-
+   
   });
 });
 
 
-server.listen(8080);
+server.listen(81);
