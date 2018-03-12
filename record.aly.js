@@ -2,8 +2,8 @@
 var Record = (function () {
 	var ALY = require('aliyun-sdk');
 	var oss = new ALY.OSS({
-		"accessKeyId": "你的accessKeyId",
-		"secretAccessKey": "你的secretAccessKey",
+		"accessKeyId": process.env.accessKeyId || "你的accessKeyId",
+		"secretAccessKey": process.env.secretAccessKey || "你的secretAccessKey",
 		// 根据你的 oss 实例所在地区选择填入
 		// 杭州：http://oss-cn-hangzhou.aliyuncs.com
 		// 北京：http://oss-cn-beijing.aliyuncs.com
@@ -23,7 +23,7 @@ var Record = (function () {
 	var MyStream = (function () {
 		function MyStream(bucket, jsonpCallback) {
 			this.data = '';
-      this.bucket = bucket;
+			this.bucket = bucket;
 			this.jsonpCallback = jsonpCallback;
 		}
 		MyStream.prototype.setKey = function (key) {
@@ -152,7 +152,7 @@ var Record = (function () {
 				//console.log(new Date().format(),': ',name,' copy  success');
 			});
 	}
-  Record.prototype.apply = function () {
+	Record.prototype.apply = function () {
 		for (var i = 0; i <= this.index; i++) {
 			var name = 'status' + i + '.txt';
 			this.copyTo(name);
